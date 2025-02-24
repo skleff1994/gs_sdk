@@ -132,7 +132,6 @@ class Reconstructor:
             C = cv2.erode(
                 color_mask.astype(np.uint8), np.ones((25, 25), np.uint8)
             ).astype(np.bool_)
-
         return G, H, C
 
 
@@ -203,7 +202,7 @@ def poisson_dct_neumaan(gx, gy):
     denom = 4 * (
         (np.sin(0.5 * math.pi * x / (f.shape[1]))) ** 2
         + (np.sin(0.5 * math.pi * y / (f.shape[0]))) ** 2
-    )
+    ).astype(np.float32)
 
     # Inverse Discrete cosine Transform
     f = -fcos / denom
