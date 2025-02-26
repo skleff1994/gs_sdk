@@ -9,8 +9,8 @@ from torch import nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 
-from calibration.utils import load_csv_as_dict, transfer_weights
-from calibration.models import BGRXYDataset, BGRXYMLPNet_
+from calibration.utils import load_csv_as_dict
+from calibration.dataset import BGRXYDataset
 from gs_sdk.gs_reconstruct import BGRXYMLPNet
 
 """
@@ -115,13 +115,10 @@ def train_model():
 
     # Create the MLP Net for training
     device = args.device
-    net = BGRXYMLPNet_().to(device)
+    net = BGRXYMLPNet().to(device)
     criterion = nn.L1Loss()
     optimizer = optim.Adam(net.parameters(), lr=args.lr, weight_decay=0.0)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
-
-    # Create MLP Net in the CNN format for saving
-    save_net = BGRXYMLPNet().to(device)
 
     # Initial evaluation
     train_mae = evaluate(net, train_dataloader, device)
@@ -157,9 +154,8 @@ def train_model():
         # Save model every 10 steps
         if (epoch_idx + 1) % 10 == 0:
             # Transfer weights to MLP Net and save
-            transfer_weights(net, save_net)
             save_path = os.path.join(model_dir, "nnmodel.pth")
-            torch.save(save_net.state_dict(), save_path)
+            torch.save(net.state_dict(), save_path)
 
     # Save the training curve
     save_path = os.path.join(model_dir, "training_curve.png")

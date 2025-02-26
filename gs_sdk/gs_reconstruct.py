@@ -1,3 +1,4 @@
+import time
 import math
 import os
 
@@ -12,26 +13,21 @@ import torch.nn.functional as F
 class BGRXYMLPNet(nn.Module):
     """
     The Neural Network architecture for GelSight calibration.
-
-    This class uses 1-by-1 convolution, which is technically the same as using MLP.
     """
 
     def __init__(self):
         super(BGRXYMLPNet, self).__init__()
-        input_channels = 5
-        self.conv1 = nn.Conv2d(input_channels, 128, kernel_size=1)
-        self.bn1 = nn.BatchNorm2d(128)
-        self.conv2 = nn.Conv2d(128, 32, kernel_size=1)
-        self.bn2 = nn.BatchNorm2d(32)
-        self.conv3 = nn.Conv2d(32, 32, kernel_size=1)
-        self.bn3 = nn.BatchNorm2d(32)
-        self.conv4 = nn.Conv2d(32, 2, kernel_size=1)
+        input_size = 5
+        self.fc1 = nn.Linear(input_size, 32)
+        self.fc2 = nn.Linear(32, 32)
+        self.fc3 = nn.Linear(32, 32)
+        self.fc4 = nn.Linear(32, 2)
 
     def forward(self, x):
-        x = F.relu(self.bn1(self.conv1(x)))
-        x = F.relu(self.bn2(self.conv2(x)))
-        x = F.relu(self.bn3(self.conv3(x)))
-        x = self.conv4(x)
+        x = F.relu_(self.fc1(x))
+        x = F.relu_(self.fc2(x))
+        x = F.relu_(self.fc3(x))
+        x = self.fc4(x)
         return x
 
 
@@ -72,13 +68,14 @@ class Reconstructor:
         self.bg_image = bg_image
 
         # Calculate the gradients of the background
-        bgrxys = image2bgrxys(bg_image)
-        bgrxys = bgrxys.transpose(2, 0, 1)
-        features = torch.from_numpy(bgrxys[np.newaxis, :, :, :]).float().to(self.device)
+        bgrxys = image2bgrxys(bg_image).reshape(-1, 5)
+        features = torch.from_numpy(bgrxys).float().to(self.device)
         with torch.no_grad():
             gxyangles = self.gxy_net(features)
-            gxyangles = gxyangles[0].cpu().detach().numpy()
-            self.bg_G = np.tan(gxyangles.transpose(1, 2, 0))
+            gxyangles = gxyangles.cpu().detach().numpy()
+            self.bg_G = np.tan(
+                gxyangles.reshape(bg_image.shape[0], bg_image.shape[1], 2)
+            )
 
     def get_surface_info(self, image, ppmm):
         """
@@ -91,13 +88,12 @@ class Reconstructor:
                 C: np.array (H, W); the contact mask.
         """
         # Calculate the gradients
-        bgrxys = image2bgrxys(image)
-        bgrxys = bgrxys.transpose(2, 0, 1)
-        features = torch.from_numpy(bgrxys[np.newaxis, :, :, :]).float().to(self.device)
+        bgrxys = image2bgrxys(image).reshape(-1, 5)
+        features = torch.from_numpy(bgrxys).float().to(self.device)
         with torch.no_grad():
             gxyangles = self.gxy_net(features)
-            gxyangles = gxyangles[0].cpu().detach().numpy()
-            G = np.tan(gxyangles.transpose(1, 2, 0))
+            gxyangles = gxyangles.cpu().detach().numpy()
+            G = np.tan(gxyangles.reshape(image.shape[0], image.shape[1], 2))
             if self.bg_image is not None:
                 G = G - self.bg_G
             else:
@@ -142,12 +138,13 @@ def image2bgrxys(image):
     :param image: np.array (H, W, 3); the bgr image.
     :return: np.array (H, W, 5); the bgrxy feature.
     """
-    xys = np.dstack(
-        np.meshgrid(np.arange(image.shape[1]), np.arange(image.shape[0]), indexing="xy")
+    ys = np.linspace(0, 1, image.shape[0], endpoint=False, dtype=np.float32)
+    xs = np.linspace(0, 1, image.shape[1], endpoint=False, dtype=np.float32)
+    xx, yy = np.meshgrid(xs, ys, indexing="xy")
+    bgrxys = np.concatenate(
+        [image.astype(np.float32) / 255, xx[..., np.newaxis], yy[..., np.newaxis]],
+        axis=2,
     )
-    xys = xys.astype(np.float32) / np.array([image.shape[1], image.shape[0]])
-    bgrs = image.copy() / 255
-    bgrxys = np.concatenate([bgrs, xys], axis=2)
     return bgrxys
 
 
