@@ -60,9 +60,10 @@ class Reconstructor:
         if not os.path.isfile(model_path):
             raise ValueError("Error opening %s, file does not exist" % model_path)
         self.gxy_net = BGRXYMLPNet()
-        self.gxy_net.load_state_dict(torch.load(model_path), self.device)
+        self.gxy_net.load_state_dict(torch.load(model_path))
+        self.gxy_net.to(self.device)  # Move the model to the specified device
         self.gxy_net.eval()
-
+        
     def load_bg(self, bg_image):
         """
         Load the background image.
@@ -74,7 +75,7 @@ class Reconstructor:
         # Calculate the gradients of the background
         bgrxys = image2bgrxys(bg_image)
         bgrxys = bgrxys.transpose(2, 0, 1)
-        features = torch.from_numpy(bgrxys[np.newaxis, :, :, :]).float().to(self.device)
+        features = torch.from_numpy(bgrxys[np.newaxis, :, :, :]).float().to(self.device)  # Ensure the input tensor is on the correct device
         with torch.no_grad():
             gxyangles = self.gxy_net(features)
             gxyangles = gxyangles[0].cpu().detach().numpy()
@@ -93,7 +94,7 @@ class Reconstructor:
         # Calculate the gradients
         bgrxys = image2bgrxys(image)
         bgrxys = bgrxys.transpose(2, 0, 1)
-        features = torch.from_numpy(bgrxys[np.newaxis, :, :, :]).float().to(self.device)
+        features = torch.from_numpy(bgrxys[np.newaxis, :, :, :]).float().to(self.device)  # Ensure the input tensor is on the correct device
         with torch.no_grad():
             gxyangles = self.gxy_net(features)
             gxyangles = gxyangles[0].cpu().detach().numpy()
@@ -134,7 +135,6 @@ class Reconstructor:
             ).astype(np.bool_)
 
         return G, H, C
-
 
 def image2bgrxys(image):
     """
