@@ -21,9 +21,13 @@ Arguments:
     --device: The device to load the neural network model. Options are 'cuda' or 'cpu'.
 """
 
-model_path = os.path.join(os.path.dirname(__file__), "models", "gsmini.pth")
+# model_path = os.path.join(os.path.dirname(__file__), "models", "gsmini.pth")
+# config_path = os.path.join(os.path.dirname(__file__), "configs", "gsmini.yaml")
+# data_dir = os.path.join(os.path.dirname(__file__), "data")
+
+model_path = "/home/skleff/panda_ws/src/gs_sdk/calibration/test/model/nnmodel_custom.pth"
 config_path = os.path.join(os.path.dirname(__file__), "configs", "gsmini.yaml")
-data_dir = os.path.join(os.path.dirname(__file__), "data")
+data_dir = "/home/skleff/panda_ws/src/gs_sdk/calibration/test/data/"
 
 
 def reconstruct():
@@ -34,7 +38,7 @@ def reconstruct():
         "--device",
         type=str,
         choices=["cuda", "cpu"],
-        default="cpu",
+        default="cuda",
         help="The device to load and run the neural network model.",
     )
     args = parser.parse_args()
@@ -50,7 +54,7 @@ def reconstruct():
     recon.load_bg(bg_image)
 
     # Reconstruct the surface information from data and save them to files
-    filenames = ["bead.png", "key.png", "seed.png"]
+    filenames = ["screw.png"]
     for filename in filenames:
         image = cv2.imread(os.path.join(data_dir, filename))
         G, H, C = recon.get_surface_info(image, ppmm)
@@ -59,7 +63,7 @@ def reconstruct():
         fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(15, 10))
         axes[0, 0].imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
         axes[0, 0].set_title("GelSight Image")
-        plot_gradients(fig, axes[0, 1], G[:, :, 0], G[:, :, 1], mask=C, mode="rgb")
+        plot_gradients(fig, axes[0, 1], G[:, :, 0], G[:, :, 1], mask=C, mode="quiver")
         axes[0, 1].set_title("Reconstructed Gradients")
         axes[1, 0].imshow(H, cmap="jet")
         axes[1, 0].set_title("Reconstructed Heights")
@@ -68,7 +72,7 @@ def reconstruct():
         for ax in axes.flatten():
             ax.set_xticks([])
             ax.set_yticks([])
-        save_path = os.path.join(data_dir, "reconstructed_" + filename)
+        save_path = os.path.join(data_dir, "reconstructed_custom_" + filename)
         plt.savefig(save_path)
         plt.close()
         print("Save results to %s" % save_path)

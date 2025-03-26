@@ -42,7 +42,7 @@ class Reconstructor:
     This class handles 3D reconstruction from calibrated GelSight images.
     """
 
-    def __init__(self, model_path, contact_mode="standard", device="cpu"):
+    def __init__(self, model_path, contact_mode="standard", device="cuda"):
         """
         Initialize the reconstruction model.
         Contact mode "flat" means the object in contact is flat, so a different threshold
@@ -62,6 +62,7 @@ class Reconstructor:
         self.gxy_net = BGRXYMLPNet()
         self.gxy_net.load_state_dict(torch.load(model_path))
         self.gxy_net.to(self.device)  # Move the model to the specified device
+        print(f"Model on device: {next(self.gxy_net.parameters()).device}")
         self.gxy_net.eval()
         
     def load_bg(self, bg_image):
@@ -76,6 +77,9 @@ class Reconstructor:
         bgrxys = image2bgrxys(bg_image)
         bgrxys = bgrxys.transpose(2, 0, 1)
         features = torch.from_numpy(bgrxys[np.newaxis, :, :, :]).float().to(self.device)  # Ensure the input tensor is on the correct device
+        print(f"Input tensor device before transfer: {features.device}")
+        features = features.to(self.device)  # Ensure the tensor is on the correct device
+        print(f"Input tensor device after transfer: {features.device}")
         with torch.no_grad():
             gxyangles = self.gxy_net(features)
             gxyangles = gxyangles[0].cpu().detach().numpy()

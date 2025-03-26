@@ -51,7 +51,7 @@ def train_model():
         "--device",
         type=str,
         choices=["cpu", "cuda"],
-        default="cpu",
+        default="cuda",
         help="the device to train NN",
     )
     args = parser.parse_args()
@@ -115,6 +115,7 @@ def train_model():
 
     # Create the MLP Net for training
     device = args.device
+    print("\n\n device = \n\n", device)
     net = BGRXYMLPNet_().to(device)
     criterion = nn.L1Loss()
     optimizer = optim.Adam(net.parameters(), lr=args.lr, weight_decay=0.0)

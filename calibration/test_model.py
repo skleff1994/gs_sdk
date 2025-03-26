@@ -60,8 +60,8 @@ def test_model():
     # Create device and the reconstructor
     device = Camera(device_name, imgh, imgw)
     device.connect()
-    model_path = os.path.join(args.calib_dir, "model", "nnmodel.pth")
-    recon = Reconstructor(model_path, device="cpu")
+    model_path = os.path.join(args.calib_dir, "model", "nnmodel_custom.pth")
+    recon = Reconstructor(model_path, device="cuda")
 
     # Collect background images
     print("Collecting 10 background images, please wait ...")

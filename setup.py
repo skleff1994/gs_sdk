@@ -8,17 +8,17 @@ setup(
     author_email="hungjuih@andrew.cmu.edu, ruihang@andrew.cmu.edu",
     packages=find_packages(),
     install_requires=[
-        "pillow==10.0.0",
-        "numpy==1.26.4",
-        "opencv-python>=4.9.0",
-        "scipy>=1.13.1",
-        "torch>=2.1.0",
-        "PyYaml>=6.0.1",
-        "matplotlib>=3.9.0",
-        "ffmpeg-python",
-        "nanogui"
+        # "pillow==10.0.0",
+        # "numpy==1.26.4",
+        # "opencv-python>=4.9.0",
+        # "scipy>=1.13.1",
+        # "torch>=2.1.0",
+        # "PyYaml>=6.0.1",
+        # "matplotlib>=3.9.0",
+        # "ffmpeg-python",
+        # "nanogui"
     ],
-    python_requires=">=3.9",
+    # python_requires=">=3.9",
     entry_points={
         'console_scripts': [
             'collect_data=calibration.collect_data:collect_data',
