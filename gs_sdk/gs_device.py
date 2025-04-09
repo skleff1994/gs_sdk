@@ -78,7 +78,7 @@ class FastCamera:
     This class handles camera initialization, image acquisition, and camera release with low latency.
     """
 
-    def __init__(self, dev_type, imgh, imgw, raw_imgh, raw_imgw, framerate):
+    def __init__(self, dev_type, imgh, imgw, raw_imgh, raw_imgw, framerate, verbose=True):
         """
         Initialize the low latency camera. Raw camera parameters are required to stream with low latency.
 
@@ -88,6 +88,7 @@ class FastCamera:
         :param raw_imgh: int; The raw height of the image.
         :param raw_imgw: int; The raw width of the image.
         :param framerate: int; The frame rate of the camera.
+        :param verbose: bool; Whether to print the camera information.
         """
         # Raw image size
         self.raw_imgh = raw_imgh
@@ -99,10 +100,10 @@ class FastCamera:
         self.imgw = imgw
         # Get camera ID
         self.dev_type = dev_type
-        self.dev_id = get_camera_id(self.dev_type)
+        self.dev_id = get_camera_id(self.dev_type, verbose)
         self.device = "/dev/video" + str(self.dev_id)
 
-    def connect(self):
+    def connect(self, verbose=True):
         """
         Connect to the camera using FFMpeg streamer.
         """
@@ -125,11 +126,13 @@ class FastCamera:
             self.ffmpeg_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
         # Warm-up phase: discard the first few frames
-        print("Warming up the camera...")
+        if verbose:
+            print("Warming up the camera...")
         warm_up_frames = 100
         for _ in range(warm_up_frames):
             self.process.stdout.read(self.raw_size)
-        print("Camera ready for use!")
+        if verbose:
+            print("Camera ready for use!")
 
     def get_image(self):
         """
@@ -152,11 +155,12 @@ class FastCamera:
         self.process.wait()
 
 
-def get_camera_id(camera_name):
+def get_camera_id(camera_name, verbose=True):
     """
     Find the camera ID that has the corresponding camera name.
 
     :param camera_name: str; The name of the camera.
+    :param verbose: bool; Whether to print the camera information.
     :return: int; The camera ID.
     """
     cam_num = None
@@ -166,10 +170,13 @@ def get_camera_id(camera_name):
             name = name_file.read().rstrip()
         if camera_name in name:
             cam_num = int(re.search("\d+$", file).group(0))
-            found = "FOUND!"
+            if verbose:
+                found = "FOUND!"
         else:
-            found = "      "
-        print("{} {} -> {}".format(found, file, name))
+            if verbose:
+                found = "      "
+        if verbose:
+            print("{} {} -> {}".format(found, file, name))
 
     return cam_num
 
