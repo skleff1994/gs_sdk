@@ -123,7 +123,7 @@ class FastCamera:
             .compile()
         )
         self.process = subprocess.Popen(
-            self.ffmpeg_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            self.ffmpeg_command, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL
         )
         # Warm-up phase: discard the first few frames
         if verbose:
