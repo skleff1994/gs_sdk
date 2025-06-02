@@ -21,7 +21,7 @@ Arguments:
     --device: The device to load the neural network model. Options are 'cuda' or 'cpu'.
 """
 
-model_path = os.path.join(os.path.dirname(__file__), "models", "gsmini.pth")
+model_path = os.path.join(os.path.dirname(__file__), "models", "nnmodel.pth")
 config_path = os.path.join(os.path.dirname(__file__), "configs", "gsmini.yaml")
 data_dir = os.path.join(os.path.dirname(__file__), "data")
 

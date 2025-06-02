@@ -11,6 +11,9 @@ This repository is a modified version of the [the official gsrobotics implementa
 
 - **Low-Latency Sensor Reading**: Including an enhanced image streaming pipeline for reduced latency and frame drop, especially for GelSight Mini.
 
+    ⚠️ The original streaming implementation uses OpenCV and may drop to ~10 Hz. The low-latency version uses FFmpeg to maintain 25 Hz, **but on some systems it can introduce severe frame delay and duplication**. Contributions to improve this are welcome via Pull Request.
+
+
 Authors:
 * [Hung-Jui Huang](https://joehjhuang.github.io/) (hungjuih@andrew.cmu.edu)
 * Ruihan Gao (ruihang@andrew.cmu.edu)

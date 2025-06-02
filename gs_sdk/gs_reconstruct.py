@@ -77,12 +77,16 @@ class Reconstructor:
                 gxyangles.reshape(bg_image.shape[0], bg_image.shape[1], 2)
             )
 
-    def get_surface_info(self, image, ppmm):
+    def get_surface_info(
+        self, image, ppmm, color_dist_threshold=15, height_threshold=0.2
+    ):
         """
         Get the surface information including gradients (G), height map (H), and contact mask (C).
 
         :param image: np.array (H, W, 3); the gelsight image.
         :param ppmm: float; the pixel per mm.
+        :param color_dist_threshold: float; the color distance threshold for contact mask.
+        :param height_threshold: float; the height threshold for contact mask.
         :return G: np.array (H, W, 2); the gradients.
                 H: np.array (H, W); the height map.
                 C: np.array (H, W); the contact mask.
@@ -104,9 +108,9 @@ class Reconstructor:
 
         # Calculate the contact mask
         if self.contact_mode == "standard":
-            # Find the contact mask based on color difference
+            # Filter by color difference
             diff_image = image.astype(np.float32) - self.bg_image.astype(np.float32)
-            color_mask = np.linalg.norm(diff_image, axis=-1) > 15
+            color_mask = np.linalg.norm(diff_image, axis=-1) > color_dist_threshold
             color_mask = cv2.dilate(
                 color_mask.astype(np.uint8), np.ones((7, 7), np.uint8)
             )
@@ -115,8 +119,10 @@ class Reconstructor:
             )
 
             # Filter by height
-            cutoff = np.percentile(H, 85) - 0.2 / ppmm
+            cutoff = np.percentile(H, 85) - height_threshold / ppmm
             height_mask = H < cutoff
+
+            # Combine the masks
             C = np.logical_and(color_mask, height_mask)
         elif self.contact_mode == "flat":
             # Find the contact mask based on color difference
