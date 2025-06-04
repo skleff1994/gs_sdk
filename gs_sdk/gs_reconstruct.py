@@ -57,6 +57,7 @@ class Reconstructor:
             raise ValueError("Error opening %s, file does not exist" % model_path)
         self.gxy_net = BGRXYMLPNet()
         self.gxy_net.load_state_dict(torch.load(model_path), self.device)
+        self.gxy_net.to(self.device)  # Move the model to the specified device
         self.gxy_net.eval()
 
     def load_bg(self, bg_image):
