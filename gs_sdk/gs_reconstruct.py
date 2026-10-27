@@ -56,7 +56,9 @@ class Reconstructor:
         if not os.path.isfile(model_path):
             raise ValueError("Error opening %s, file does not exist" % model_path)
         self.gxy_net = BGRXYMLPNet()
-        self.gxy_net.load_state_dict(torch.load(model_path), self.device)
+        # map_location, not a positional arg to load_state_dict (whose second parameter is
+        # `strict`): a model saved on a CUDA host must still load on a CPU-only analysis machine.
+        self.gxy_net.load_state_dict(torch.load(model_path, map_location=self.device))
         self.gxy_net.to(self.device)  # Move the model to the specified device
         self.gxy_net.eval()
 
